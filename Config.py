@@ -1,0 +1,4 @@
+config  = {
+    'epochs' : 20,
+     
+}
