@@ -1,4 +1,5 @@
 import tensorflow as tf
+import math
 
 def init_weights_and_biases(n_layers, hidden_layers, n_input, n_output):
     weights = [] # Weights for different layers
@@ -7,17 +8,17 @@ def init_weights_and_biases(n_layers, hidden_layers, n_input, n_output):
     weights_biases_counter = 1
 
     # First Layer Weights and biases
-    weights.append(tf.get_variable("Weights_"+str(weights_biases_counter), initializer= tf.random_normal([n_input, hidden_layers[0]])))
+    weights.append(tf.get_variable("Weights_"+str(weights_biases_counter), initializer= tf.random_normal([n_input, hidden_layers[0]], -1.0/math.sqrt(n_input), 1.0/math.sqrt(n_input))))
     biases.append(tf.get_variable("Biases_"+str(weights_biases_counter), initializer= tf.random_normal([hidden_layers[0]])))
     weights_biases_counter = weights_biases_counter+1
     # Hidden Layers Weights and Biases initialisation
     if n_layers > 1:
         for layer in range(n_layers-1):
-            weights.append(tf.get_variable("Weights_"+str(weights_biases_counter), initializer= tf.random_normal([hidden_layers[layer], hidden_layers[layer+1]])))
+            weights.append(tf.get_variable("Weights_"+str(weights_biases_counter), initializer= tf.random_normal([hidden_layers[layer], hidden_layers[layer+1]], -1.0/math.sqrt(hidden_layers[layer]), 1.0/math.sqrt(hidden_layers[layer]))))
             biases.append(tf.get_variable("Biases_"+str(weights_biases_counter), initializer= tf.random_normal([hidden_layers[layer+1]])))
             weights_biases_counter = weights_biases_counter+1
     # Output Layer weights
-    weights.append(tf.get_variable("Weights_"+str(weights_biases_counter), initializer= tf.random_normal([hidden_layers[n_layers-1], n_output])))
+    weights.append(tf.get_variable("Weights_"+str(weights_biases_counter), initializer= tf.random_normal([hidden_layers[n_layers-1], n_output], -1.0/math.sqrt(hidden_layers[n_layers-1]), 1.0/math.sqrt(hidden_layers[n_layers-1]))))
     biases.append(tf.get_variable("Biases_"+str(weights_biases_counter), initializer= tf.random_normal([n_output])))
     weights_biases_counter = weights_biases_counter+1
 
@@ -53,7 +54,7 @@ def build_network(conf, X, n_layers, weights, biases):
 
         if n_layers > 1 :
             for layer in range(n_layers-1):
-                final_layer = tf.tanh(tf.matmul(final_layer, weights(layer+1)) + biases[layer+1])
+                final_layer = tf.tanh(tf.matmul(final_layer, weights[layer+1]) + biases[layer+1])
 
         predict = tf.tanh(tf.matmul(final_layer, weights[n_layers]) + biases[n_layers])
 

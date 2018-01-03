@@ -1,19 +1,7 @@
 import numpy as np
 import timeit
 import pickle
-from pprint import pprint
-
-def testData():
-    indices = [[0, 0], [0, 2], [0, 4],
-                [1,1], [1,2], [1,4],
-                [2,0], [2,1], [2,3],
-                [3,3],
-                [4,1], [4, 4]
-                ]
-    values = [3, 4, 2, 3, 5, 1, 2, 4, 4, 1, 2, 4]
-
-    return tf.Session().run(tf.sparse_to_dense(indices, [5, 5], values))
-
+import os
 
 class DataLoader:
 
@@ -28,35 +16,35 @@ class DataLoader:
             'U' : { 'data' : {} },
             'V' : { 'data': {} }
         }
-
-        self.__Usize = 0
-        self.__Vsize = 0
-        self.__noRatings = 0
-        self.__nTrain = 0
-
+        # Details about the Dataset
+        self._Usize = 0
+        self._Vsize = 0
+        self._noRatings = 0
+        self._nTrain = 0
+        # User and Item counters
         self._userHash = {}
         self._userCounter = 1
         self._itemHash = {}
         self._itemCounter = 1
         np.random.seed(1)
 
-    def preprocess(self, x):
+    def _preprocess(self, x):
         return (x-3)/2
 
-    def postprocess(self, x):
+    def _postprocess(self, x):
         return 2*x+3
 
 
-    def sortAscById(self, X):
+    def _sortAscById(self, X):
 
         for key, value in X.items():
             value.sort(key=lambda x:x[0])
 
-    def __postprocessing(self):
-        self.sortAscById(self.train['U']['data'])
-        self.sortAscById(self.train['V']['data'])
-        self.sortAscById(self.test['U']['data'])
-        self.sortAscById(self.test['V']['data'])
+    def _postprocessing(self):
+        self._sortAscById(self.train['U']['data'])
+        self._sortAscById(self.train['V']['data'])
+        self._sortAscById(self.test['U']['data'])
+        self._sortAscById(self.test['V']['data'])
 
 
     def _appendTrain(self, userIndex, itemIndex, rating):
@@ -68,7 +56,7 @@ class DataLoader:
         self.train['U']['data'][userIndex].append([itemIndex, rating])
         self.train['V']['data'][itemIndex].append([userIndex, rating])
 
-        self.__nTrain = self.__nTrain + 1
+        self._nTrain = self._nTrain + 1
 
 
     def _appendTest(self, userIndex, itemIndex, rating):
@@ -82,19 +70,17 @@ class DataLoader:
 
 
     def _appendRating(self, userIndex, itemIndex, rating):
-        if np.random.uniform() < self.__trainingRatio:
+        if np.random.uniform() < self._trainingRatio:
             self._appendTrain(userIndex, itemIndex, rating)
-
         else:
             self._appendTest(userIndex, itemIndex, rating)
 
-        self.__noRatings = self.__noRatings + 1
+        self._noRatings = self._noRatings + 1
+        self._Usize = userIndex if self._Usize < userIndex else self._Usize
+        self._Vsize = itemIndex if self._Vsize < itemIndex else self._Vsize
 
-        self.__Usize = userIndex if self.__Usize < userIndex else self.__Usize
-        self.__Vsize = itemIndex if self.__Vsize < itemIndex else self.__Vsize
 
-
-    def getUserIndex(self, id):
+    def _getUserIndex(self, id):
         if id not in self._userHash:
             self._userHash[id] = self._userCounter
             self._userCounter = self._userCounter+1
@@ -102,7 +88,7 @@ class DataLoader:
         return self._userHash[id]
 
 
-    def getItemIndex(self, id):
+    def _getItemIndex(self, id):
         if id not in self._itemHash:
             self._itemHash[id] = self._itemCounter
             self._itemCounter = self._itemCounter+1
@@ -119,10 +105,10 @@ class DataLoader:
                 itemId = int(itemId)
                 rating = int(rating)
 
-                userIndex = self.getUserIndex(userId)
-                itemIndex = self.getItemIndex(itemId)
+                userIndex = self._getUserIndex(userId)
+                itemIndex = self._getItemIndex(itemId)
 
-                rating = self.preprocess(rating)
+                rating = self._preprocess(rating)
                 self._appendRating(userIndex, itemIndex, rating)
 
 
@@ -130,26 +116,28 @@ class DataLoader:
 
         start = timeit.default_timer()
 
-        self.__trainingRatio = conf['trainingRatio']
+        self._trainingRatio = conf['trainingRatio']
         self.loadRatings(conf)
+        # Sorting the itemId's in user and vice versa
+        self._postprocessing()
+        # save to local disk for faster access next time
+        self._save(conf)
 
-        # Sorting the itemId's in user and vice versa for easy use of spareTensor
-        self.__postprocessing()
-
-        # save to local disk for faster access
-        self.__save(conf)
-
-        print("Time Taken to complete : {}".format(timeit.default_timer() - start))
+        print("Time Taken to complete : {}"
+                                .format(timeit.default_timer() - start))
 
 
-    def __save(self,conf):
+    def _save(self,conf):
+
+        sparsity = str(round(100 - (self._nTrain/(self._Usize*self._Vsize))*100, 3)) + "%"
 
         info = {
-            'nRatings' : self.__noRatings,
-            'nTrain' : self.__nTrain,
-            'trainRatio' : self.__trainingRatio,
-            'nU' : self.__Usize,
-            'nV' : self.__Vsize
+            'nRatings' : self._noRatings,
+            'nTrain' : self._nTrain,
+            'trainRatio' : self._trainingRatio,
+            'nU' : self._Usize,
+            'nV' : self._Vsize,
+            'sparsity' : sparsity
         }
         data = {'train': self.train, 'test': self.test, 'info': info}
 
@@ -157,10 +145,4 @@ class DataLoader:
             pickle.dump(data, output)
 
         print("Saved Succesfully to location: {}".format(conf['out']))
-        # print(data)
-        pprint(info)
-
-
-if __name__ == '__main__':
-
-    print(testData())
+        print(info)

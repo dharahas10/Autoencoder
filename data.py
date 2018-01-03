@@ -1,6 +1,7 @@
-import numpy as np
 from DataLoader import DataLoader
 import pickle
+
+from helper import *
 
 if __name__ == '__main__':
 
@@ -10,12 +11,10 @@ if __name__ == '__main__':
         'out' : './data/ml-1m.p'
     }
 
-    # dataloader = DataLoader()
-    #
-    # dataloader.loadData(conf)
-
-    # Uncomment to test save file
-    with open(conf['out'], 'rb') as datafile:
-
-        data = pickle.load(datafile)
-        print(data['info'])
+    if find_file(conf['out']):
+        with open(conf['out'], 'rb') as datafile:
+            data = pickle.load(datafile)
+            print(data['info'])
+    else:
+        dataloader = DataLoader()
+        dataloader.loadData(conf)
