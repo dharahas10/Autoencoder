@@ -6,10 +6,10 @@ import pickle
 class TrainNetwork:
 
     def __init__(self):
-        self.__mae = 0
-        self.__rms = 0
-        self.__mae_list = []
-        self.__rms_list = []
+        self._mae = 0
+        self._rms = 0
+        self._mae_list = []
+        self._rms_list = []
 
     def find_model(self, name, path):
         for root, dirs, files in os.walk(path):
@@ -33,7 +33,7 @@ class TrainNetwork:
         return {'mae': mae, 'rms': rms, 'count_nonzero': count_nonzero, "indices": indices, "ratings": ratings }
 
 
-    def iterate_mini_batch(self, data, batch_size):
+    def _iterate_mini_batch(self, data, batch_size):
 
         indices = []
         ratings = []
@@ -59,7 +59,7 @@ class TrainNetwork:
         yield (indices, ratings)
 
 
-    def iterate_test_train(self, train, test, batch_size):
+    def _iterate_test_train(self, train, test, batch_size):
         indices_train = []
         indices_test = []
 
@@ -103,36 +103,36 @@ class TrainNetwork:
 
     def train(self, conf, train_data, test_data, info):
         #
-        print("Setting the Network")
+        print("Starting the training")
 
         if conf['type'] == 'U':
-            self.__input_nuerons = info['nV']
-            self.__train = train_data['U']['data']
-            self.__test = test_data['U']['data']
+            self._input_nuerons = info['nV']
+            self._train = train_data['U']['data']
+            self._test = test_data['U']['data']
 
         else:
-            self.__input_nuerons = info['nU']
-            self.__train = train_data['V']['data']
-            self.__test = test_data['V']['data']
+            self._input_nuerons = info['nU']
+            self._train = train_data['V']['data']
+            self._test = test_data['V']['data']
 
 
-        model = NN.model(conf, self.__input_nuerons, self.__input_nuerons)
+        model = NN.model(conf, self._input_nuerons, self._input_nuerons)
 
-        saver = tf.train.Saver()
+        # saver = tf.train.Saver()
         # Start the trainig
         count_tmp = 1
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
 
-            if self.find_model(conf['save_model']['file'], conf['save_model']["path"]):
-                # Found saved model
-                saver.restore(sess, conf['save_model']['path']+conf['save_model']["file"])
-                print("Found and restored saved model")
+            # if self.find_model(conf['save_model']['file'], conf['save_model']["path"]):
+            #     # Found saved model
+            #     saver.restore(sess, conf['save_model']['path']+conf['save_model']["file"])
+            #     print("Found and restored saved model")
 
             print("Training Started")
             for epoch in range(conf['epochs']):
                 print("Current Epoch Training: {}".format(epoch+1))
-                for batch_indices, batch_ratings in self.iterate_mini_batch(self.__train, conf['batch_size']):
+                for batch_indices, batch_ratings in self._iterate_mini_batch(self._train, conf['batch_size']):
 
                     sess.run(model["optimize"], {model["indices"]: batch_indices, model["ratings"]: batch_ratings})
                     # tmp_loss = sess.run(model['loss'], {model["indices"]: batch_indices, model["ratings"]: batch_ratings})
@@ -144,10 +144,10 @@ class TrainNetwork:
                 error = { 'mae': 0, 'rms': 0}
                 count_nonzero = 0
                 # Calculate error after each epoch
-                for indices_train, indices_test, ratings_train, ratings_test in self.iterate_test_train(self.__train, self.__test, conf['batch_size']):
+                for indices_train, indices_test, ratings_train, ratings_test in self._iterate_test_train(self._train, self._test, conf['batch_size']):
 
                     tmp_predict = sess.run(model["predict_test"], {model["indices"]: indices_train, model["ratings"]: ratings_train})
-                    tmp_err = self.error_fn(tmp_predict, self.__input_nuerons, conf['batch_size'])
+                    tmp_err = self.error_fn(tmp_predict, self._input_nuerons, conf['batch_size'])
 
                     tmp_mae = sess.run(tmp_err['mae'], {tmp_err['indices']: indices_test, tmp_err['ratings']: ratings_test})
                     tmp_rms = sess.run(tmp_err['rms'], {tmp_err['indices']: indices_test, tmp_err['ratings']: ratings_test})
@@ -160,10 +160,10 @@ class TrainNetwork:
                 error['mae'] = (error['mae'] / count_nonzero) * 2
                 error['rms'] = error['rms'] / count_nonzero
 
-                self.__mae = error['mae']
-                self.__rms = error['rms']
-                self.__mae_list.append(error['mae'])
-                self.__rms_list.append(error['rms'])
+                self._mae = error['mae']
+                self._rms = error['rms']
+                self._mae_list.append(error['mae'])
+                self._rms_list.append(error['rms'])
                 print("Error at Epoch : {}/{} are MAE: {}  and RMS: {}".format(epoch+1, conf['epochs'], error['mae'], error['rms']))
 
                     # print(indices_train, indices_test)
@@ -174,13 +174,13 @@ class TrainNetwork:
             print("Succesfully Trained")
 
 
-            # Save the variables to disk.
-            save_path = saver.save(sess, conf['save_model']['path']+conf['save_model']['file'])
-            print("Model saved in file: %s" % save_path)
+            # # Save the variables to disk.
+            # save_path = saver.save(sess, conf['save_model']['path']+conf['save_model']['file'])
+            # print("Model saved in file: %s" % save_path)
 
 
     def save_errors(self, conf):
-        errors = { 'mae' : self.__mae, 'rms' : self.__rms, 'rms_list': self.__rms_list, 'mae_list': self.__mae_list}
+        errors = { 'mae' : self._mae, 'rms' : self._rms, 'rms_list': self._rms_list, 'mae_list': self._mae_list}
         with open(conf['save_errors'], 'wb') as output:
             pickle.dump(errors, output)
 
