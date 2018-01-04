@@ -1,0 +1,5 @@
+{
+      "ratings" : "../dataset/ml-1m/ratings.csv",
+      "trainingRatio" : 0.9,
+      "out" : "./data/ml-1m.p"
+  }
