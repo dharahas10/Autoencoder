@@ -2,6 +2,8 @@ import tensorflow as tf
 import Network as NN
 import os
 import pickle
+import math
+
 
 class TrainNetwork:
 
@@ -24,7 +26,7 @@ class TrainNetwork:
         test = tf.sparse_to_dense(indices, [batch_size, size], ratings)
 
         bool_indices = tf.cast(tf.not_equal(test, tf.constant(0, tf.float32)), tf.float32)
-        predict_test_values = tf.multiply(predict, test)
+        predict_test_values = tf.multiply(predict, bool_indices)
         count_nonzero = tf.reduce_sum(bool_indices)
 
         mae = tf.reduce_sum(tf.abs(tf.subtract(test, predict_test_values)))
@@ -117,7 +119,7 @@ class TrainNetwork:
 
 
         model = NN.model(conf, self._input_nuerons, self._input_nuerons)
-
+        test_count = info['nRatings'] - info['nTrain']
         # saver = tf.train.Saver()
         # Start the trainig
         count_tmp = 1
@@ -145,7 +147,7 @@ class TrainNetwork:
                 count_nonzero = 0
                 # Calculate error after each epoch
                 for indices_train, indices_test, ratings_train, ratings_test in self._iterate_test_train(self._train, self._test, conf['batch_size']):
-
+                    count_nonzero += len(ratings_test)
                     tmp_predict = sess.run(model["predict_test"], {model["indices"]: indices_train, model["ratings"]: ratings_train})
                     tmp_err = self.error_fn(tmp_predict, self._input_nuerons, conf['batch_size'])
 
@@ -155,10 +157,10 @@ class TrainNetwork:
 
                     error['mae'] = error['mae'] + tmp_mae
                     error['rms'] = error['rms'] + tmp_rms
-                    count_nonzero = count_nonzero+tmp_count
+                    # count_nonzero = count_nonzero+tmp_count
 
                 error['mae'] = (error['mae'] / count_nonzero) * 2
-                error['rms'] = error['rms'] / count_nonzero
+                error['rms'] = math.sqrt(error['rms'] / count_nonzero)*2
 
                 self._mae = error['mae']
                 self._rms = error['rms']

@@ -1,4 +1,0 @@
-config  = {
-    'epochs' : 20,
-     
-}

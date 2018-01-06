@@ -11,6 +11,9 @@
           "path": "./models/",
           "file": "ml-1m.ckpt"
       },
-      "save_errors": "./errors/ml-1m.p"
-
+      "save_errors": "./errors/ml-1m.p",
+      "noiseRatio": 0.9,
+      "isNoisy": true,
+      "alpha": 0.7,
+      "beta": 0.5
   }

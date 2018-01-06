@@ -100,7 +100,7 @@ class DataLoader:
 
         with open(conf['ratings']) as file:
             for line in file:
-                userId, itemId, rating, _ = line.split("::")
+                userId, itemId, rating, _ = line.split(conf['split'])
                 userId = int(userId)
                 itemId = int(itemId)
                 rating = int(rating)
