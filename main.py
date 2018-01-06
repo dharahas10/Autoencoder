@@ -32,5 +32,6 @@ if __name__ == '__main__':
 
         trainer.train(conf, train, test, info)
 
-    time = timeit.default_timer() - start
-    print("Time taken to complete (mm:ss): {}:{}  ".format(time//60, time%60))
+    end = timeit.default_timer()
+    mm, ss = duration(start, end)
+    print("Time taken to complete (mm:ss): {}:{}  ".format(mm, ss))

@@ -1,8 +1,10 @@
 import tensorflow as tf
 import Network as NN
+from helper import *
 import os
 import pickle
 import math
+import timeit
 
 
 class TrainNetwork:
@@ -12,11 +14,6 @@ class TrainNetwork:
         self._rms = 0
         self._mae_list = []
         self._rms_list = []
-
-    def find_model(self, name, path):
-        for root, dirs, files in os.walk(path):
-            if name in files:
-                return True
 
     def error_fn(self, predict, size, batch_size):
         # print([batch_size, size])
@@ -120,28 +117,28 @@ class TrainNetwork:
 
         model = NN.model(conf, self._input_nuerons, self._input_nuerons)
         test_count = info['nRatings'] - info['nTrain']
-        # saver = tf.train.Saver()
+        # tensorflow model saver
+        saver = tf.train.Saver()
+
         # Start the trainig
         count_tmp = 1
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
 
-            # if self.find_model(conf['save_model']['file'], conf['save_model']["path"]):
-            #     # Found saved model
-            #     saver.restore(sess, conf['save_model']['path']+conf['save_model']["file"])
-            #     print("Found and restored saved model")
+            if find_dir(conf['save_model']['path']):
+                # Found saved model
+                print("Restoring From the previously Found Model .......")
+                saver.restore(sess, conf['save_model']['path']+conf['save_model']['name'])
+                print("Previous Model Found and restored Succesfully")
+            else:
+                print("No previously saved model found")
 
-            print("Training Started")
+            print("Training Started...")
             for epoch in range(conf['epochs']):
-                print("Current Epoch Training: {}".format(epoch+1))
+                tmp_start = timeit.default_timer() # Each epoch start Time and end time
+                print("Current Epoch Training: {}/{}".format(epoch+1, conf['epochs']))
                 for batch_indices, batch_ratings in self._iterate_mini_batch(self._train, conf['batch_size']):
-
                     sess.run(model["optimize"], {model["indices"]: batch_indices, model["ratings"]: batch_ratings})
-                    # tmp_loss = sess.run(model['loss'], {model["indices"]: batch_indices, model["ratings"]: batch_ratings})
-                    # print("Counter: {} Loss is : {}".format(count_tmp, tmp_loss))
-                    # count_tmp = count_tmp+1
-
-                # break
 
                 error = { 'mae': 0, 'rms': 0}
                 count_nonzero = 0
@@ -162,23 +159,20 @@ class TrainNetwork:
                 error['mae'] = (error['mae'] / count_nonzero) * 2
                 error['rms'] = math.sqrt(error['rms'] / count_nonzero)*2
 
-                self._mae = error['mae']
-                self._rms = error['rms']
+                self._mae = error['mae'] if self._mae > error['mae'] else self._mae
+                self._rms = error['rms'] if self._rms > error['rms'] else self._rms
                 self._mae_list.append(error['mae'])
                 self._rms_list.append(error['rms'])
-                print("Error at Epoch : {}/{} are MAE: {}  and RMS: {}".format(epoch+1, conf['epochs'], error['mae'], error['rms']))
-
-                    # print(indices_train, indices_test)
-                    # break
-
-                # break
+                tmp_end = timeit.default_timer()
+                tmp_mm, tmp_ss = duration(tmp_start, tmp_end)
+                print("Error at Epoch : {}/{} adn learning_rate: {} are MAE: {}  and RMS: {} and time taken: {}mm:{}ss".format(epoch+1, conf['epochs'], conf['learning_rate'], error['mae'], error['rms'], tmp_mm, tmp_ss))
 
             print("Succesfully Trained")
 
 
-            # # Save the variables to disk.
-            # save_path = saver.save(sess, conf['save_model']['path']+conf['save_model']['file'])
-            # print("Model saved in file: %s" % save_path)
+            # Save the variables to disk.
+            save_path = saver.save(sess, conf['save_model']['path']+conf['save_model']['name'])
+            print("Model saved in file: %s" % save_path)
 
 
     def save_errors(self, conf):

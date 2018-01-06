@@ -4,12 +4,12 @@
       "seed": 0,
       "hidden_layers": [500],
       "activate_fn" : "tanh",
-      "epochs": 10,
+      "epochs": 1,
       "learning_rate": 0.01,
       "batch_size": 30,
       "save_model": {
-          "path": "./models/",
-          "file": "ml-1m.ckpt"
+        "path": "./models/ml-1m/",
+        "name": "ml-1m.ckpt"
       },
       "save_errors": "./errors/ml-1m.p",
       "noiseRatio": 0.9,
