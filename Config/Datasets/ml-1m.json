@@ -2,5 +2,6 @@
       "ratings" : "../dataset/ml-1m/ratings.csv",
       "split" : "::",
       "trainingRatio" : 0.9,
-      "out" : "./data/ml-1m.p"
+      "out" : "./processed_data/ml-1m.p",
+      "multi_rating": false
   }

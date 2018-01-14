@@ -1,11 +1,14 @@
-from DataLoader import DataLoader
+from Data.SingleRatingDataLoader import SingleRatingDataLoader
+from Data.MultiRatingDataLoader import MultiRatingDataLoader
+from helper import *
 import pickle
 import json
-from helper import *
+
 
 if __name__ == '__main__':
 
-    conf_filename = "./Config/Data/ml-1m.json"
+
+    conf_filename = "./Config/Datasets/tripAdvisor.json"
 
     with open(conf_filename, 'r') as conf_file:
         conf = json.load(conf_file)
@@ -15,5 +18,9 @@ if __name__ == '__main__':
             data = pickle.load(datafile)
             print(data['info'])
     else:
-        dataloader = DataLoader()
-        dataloader.loadData(conf)
+        if not conf['multi_rating']:
+            dataloader = SingleRatingDataLoader()
+            dataloader.loadData(conf)
+        else:
+            dataloader = MultiRatingDataLoader()
+            dataloader.loadData(conf)

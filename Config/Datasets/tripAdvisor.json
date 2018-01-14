@@ -1,0 +1,7 @@
+{
+        "ratings" : "../dataset/Trip Advisor/tripadvisor_reviews.csv",
+        "split" : ";",
+        "trainingRatio" : 0.9,
+        "out" : "./processed_data/tripAdvisor.p",
+        "multi_rating": false
+  }

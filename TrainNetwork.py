@@ -174,6 +174,7 @@ class TrainNetwork:
             save_path = saver.save(sess, conf['save_model']['path']+conf['save_model']['name'])
             print("Model saved in file: %s" % save_path)
 
+            self.disp_error()
 
     def save_errors(self, conf):
         errors = { 'mae' : self._mae, 'rms' : self._rms, 'rms_list': self._rms_list, 'mae_list': self._mae_list}
@@ -182,4 +183,5 @@ class TrainNetwork:
 
         print("Saved Succesfully to location: {}".format(conf['save_errors']))
 
-# if __name__ == '__main__':
+    def disp_err(self):
+        print("Mean Average Error : {} and Root Mean Square Error: {}".format(self._mae, self._rms))
