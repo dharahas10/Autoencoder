@@ -5,6 +5,7 @@ import os
 
 from pprint import pprint
 
+
 class DataLoader():
 
     def __init__(self):
@@ -27,6 +28,7 @@ class DataLoader():
         self._Vsize = 0
         self._noRatings = 0
         self._nTrain = 0
+        self._nTest = 0
 
         self._userHash = {}
         self._userCounter = 1
@@ -40,6 +42,14 @@ class DataLoader():
 
     def _postprocess(self, x):
         return 2*x + 3
+
+    def _isDup(self, alist, id):
+        for x in alist:
+            if x[0] == id:
+                print("Found duplicate")
+                return True
+
+        return False
 
 
     def _getUserIndex(self, id):
@@ -71,7 +81,7 @@ class DataLoader():
 
 
     def _appendRating(self, userIndex, itemIndex, rating):
-        np.random.seed(1)
+        # np.random.seed(1)
         if np.random.uniform() <= self._trainingRatio:
             self._appendTrain(userIndex, itemIndex, rating)
         else:
@@ -100,9 +110,14 @@ class DataLoader():
         if itemIndex not in self._train['V']['data']:
             self._train['V']['data'][itemIndex] = []
 
-        self._train['U']['data'][userIndex].append([itemIndex, rating])
-        self._train['V']['data'][itemIndex].append([userIndex, rating])
-        self._nTrain += 1
+        # new method to check duplicates
+        if not self._isDup(self._train['U']['data'][userIndex], itemIndex):
+            self._train['U']['data'][userIndex].append([itemIndex, rating])
+            self._nTrain += 1
+        if not self._isDup(self._train['V']['data'][itemIndex], userIndex):
+            self._train['V']['data'][itemIndex].append([userIndex, rating])
+
+
 
 
     def _appendMultiTrain(self, userIndex, itemIndex, overallRating, otherRatings):
@@ -111,9 +126,12 @@ class DataLoader():
         if itemIndex not in self._train['V']['data']:
             self._train['V']['data'][itemIndex] = []
 
-        self._train['U']['data'][userIndex].append([itemIndex, overallRating, otherRatings])
-        self._train['V']['data'][itemIndex].append([userIndex, overallRating, otherRatings])
-        self._nTrain += 1
+        if not self._isDup(self._train['U']['data'][userIndex], itemIndex):
+            self._train['U']['data'][userIndex].append([itemIndex, overallRating, otherRatings])
+            self._nTrain += 1
+        if not self._isDup(self._train['V']['data'][itemIndex], userIndex):
+            self._train['V']['data'][itemIndex].append([itemIndex, overallRating, otherRatings])
+
 
     def _appendTest(self, userIndex, itemIndex, rating):
         if userIndex not in self._test['U']['data']:
@@ -121,8 +139,11 @@ class DataLoader():
         if itemIndex not in self._test['V']['data']:
             self._test['V']['data'][itemIndex] = []
 
-        self._test['U']['data'][userIndex].append([itemIndex, rating])
-        self._test['V']['data'][itemIndex].append([userIndex, rating])
+        if not self._isDup(self._test['U']['data'][userIndex], itemIndex):
+            self._test['U']['data'][userIndex].append([itemIndex, rating])
+            self._nTest += 1
+        if not self._isDup(self._test['V']['data'][itemIndex], userIndex):
+            self._test['V']['data'][itemIndex].append([userIndex, rating])
 
 
     def _appendMultiTest(self, userIndex, itemIndex, overallRating, otherRatings):
@@ -131,8 +152,13 @@ class DataLoader():
         if itemIndex not in self._test['V']['data']:
             self._test['V']['data'][itemIndex] = []
 
-        self._test['U']['data'][userIndex].append([itemIndex, overallRating, otherRatings])
-        self._test['V']['data'][itemIndex].append([userIndex, overallRating, otherRatings])
+        # self._test['U']['data'][userIndex].append([itemIndex, overallRating, otherRatings])
+        # self._test['V']['data'][itemIndex].append([userIndex, overallRating, otherRatings])
+        if not self._isDup(self._test['U']['data'][userIndex], itemIndex):
+            self._test['U']['data'][userIndex].append([itemIndex, overallRating, otherRatings])
+            self._nTest += 1
+        if not self._isDup(self._test['V']['data'][itemIndex], userIndex):
+            self._test['V']['data'][itemIndex].append([itemIndex, overallRating, otherRatings])
 
 
     def _save(self, conf):
@@ -141,6 +167,7 @@ class DataLoader():
         info = {
             'nRatings' : self._noRatings,
             'nTrain' : self._nTrain,
+            "nTest" : self._nTest,
             'trainRatio' : self._trainingRatio,
             'nU' : self._Usize,
             'nV' : self._Vsize,

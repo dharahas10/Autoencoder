@@ -101,19 +101,16 @@ class TrainNetwork:
 
 
     def train(self, conf, train_data, test_data, info):
-        #
         print("Starting the training")
 
         if conf['type'] == 'U':
             self._input_nuerons = info['nV']
             self._train = train_data['U']['data']
             self._test = test_data['U']['data']
-
         else:
             self._input_nuerons = info['nU']
             self._train = train_data['V']['data']
             self._test = test_data['V']['data']
-
 
         model = NN.model(conf, self._input_nuerons, self._input_nuerons)
         test_count = info['nRatings'] - info['nTrain']
