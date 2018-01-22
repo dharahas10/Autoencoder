@@ -1,0 +1,22 @@
+{
+      "dataset": "./processed_data/tripAdvisor_multi.p",
+      "multi_ratings": true,
+      "nCriteria": 6,
+      "type": "U",
+      "seed": 0,
+      "hidden_layers": 1,
+      "hidden_nuerons": [500],
+      "activate_fn" : "tanh",
+      "epochs": 1,
+      "learning_rate": 0.01,
+      "batch_size": 30,
+      "save_model": {
+        "path": "./models/tripAdvisor_multi/tmp/",
+        "name": "tripAdvisor_multi.ckpt"
+      },
+      "save_errors": "./errors/tmp/tripAdvisor_multi.p",
+      "noiseRatio": 0.9,
+      "isNoisy": true,
+      "alpha": 0.7,
+      "beta": 0.5
+  }

@@ -1,9 +1,8 @@
 import tensorflow as tf
-import numpy as np
 import json
 import pickle
 import timeit
-from TrainNetwork import TrainNetwork
+from Networks.TrainNetwork import TrainNetwork
 from pprint import pprint
 from helper import *
 

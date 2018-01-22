@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     np.random.seed(1)
 
-    conf_filename = "./Config/Datasets/tripAdvisor_multi.json"
+    conf_filename = "./Config/Datasets/tripAdvisor.json"
 
     with open(conf_filename, 'r') as conf_file:
         conf = json.load(conf_file)

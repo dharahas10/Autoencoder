@@ -1,6 +1,6 @@
 __pycache__
 /processed_data
-models
+saved_models
 .DS_Store
 tmp.py
 /tmp
