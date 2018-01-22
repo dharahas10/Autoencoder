@@ -1,2 +1,0 @@
-model_checkpoint_path: "tripAdvisor_multi.ckpt"
-all_model_checkpoint_paths: "tripAdvisor_multi.ckpt"
